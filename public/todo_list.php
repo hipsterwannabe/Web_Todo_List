@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-
-
 <html>
     <head>
         <title>TODO List</title>
     </head>
     <body>
+
                 <!-- Change the file extension of your todo list template to .php.
 
         Create an array from your sample todo list items in the template. 
@@ -29,6 +28,27 @@
 
          -->
     <h2>TODO List</h2>
+
+    <?php
+    function save_file($filename, $todo_list) {
+            $filecontents = implode(PHP_EOL, $todo_list);
+            $handle = fopen($filename, 'w');
+            fwrite($handle, $filecontents);
+            fclose($handle);
+    }
+    
+?>
+<?php
+//step 5- link for each item, click to remove item
+// foreach ($items as $key => $item) {
+//     echo "<li>{$item} <a href=\"sample_post.php\">Remove Item</a></li>";
+// }
+// use query string using GET
+// if (issset($_GET['removeIndex'])){
+// $removeIndex = $_GET['removeIndex'];
+// unset($items[$removeIndex]);
+//}
+?>
     <?php
         $todo_list = [];
         foreach ($todo_list as $items){
@@ -36,7 +56,6 @@
             echo "<br>";
         }
     ?>
-
     <?php
         function read_file() {
             $filename = 'newlist.txt';
@@ -47,33 +66,37 @@
             fclose($handle);
             return $list;
         }
-        $new_contents = read_file();
-        $todo_list = array_merge($todo_list, $new_contents);
-        $todo_list = implode('<br>', $todo_list);
-        echo $todo_list;
+        $todo_list = read_file();
     ?>
-    
-    
-        <!-- <ul>
-        	<li>Walk the dog</li>
-        	<li>Wash the car</li>
-        	<li>Make dinner</li>
-        	<li>Buy flowers</li>
-        </ul> -->
-    <h2> Enter new list item below:</h2>
-    <br>
     <?php
-        $new_item = $_POST;
-        var_dump($new_item);
-        $todo_list = explode('<br>', $todo_list);
-        $todo_list = array_push($todo_list, $new_item);
-        echo $todo_list;
+        var_dump($todo_list);
+        if (isset($_POST["list_item"])) {
+            array_push($todo_list, $_POST["list_item"]);
+        }
+        var_dump($todo_list);
+        
     ?>
+    <ul>
+        <?php
+            foreach ($todo_list as $items) {
+                echo "<li>$items</li>";
+            }
+        ?>
+    </ul>
+    
+  
+   
+    <br>
+    
+    <h2> Enter new list item below:</h2>
     <form method='POST'>
     	<label for="list_item"></label>
     	<input id="list_item" name="list_item" type="text" placeholder="New List Item">
     	<br>
     	<input type="submit"></input>
     </form>
+<?php
+    save_file('newlist.txt', $todo_list);
+?>
     </body>
 </html>
