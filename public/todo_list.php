@@ -1,102 +1,101 @@
+<?php
+
+        $todo_list = [];
+        $filename = 'newlist.txt';
+        
+        //reading file to initialize list, as well as reading uploaded files
+        function read_file($givenFile) {
+            if (is_readable($givenFile) && filesize($givenFile) > 0){
+            $filename = $givenFile;
+            // $handle is pointer to file
+            $handle = fopen($givenFile, 'r');
+            // $contents is the actual list, contained in $givenFile, as a string
+            $contents = fread($handle, filesize($givenFile));
+            $contents = trim($contents);
+            // exploding $contents into array $list
+            $list = explode("\n", $contents);
+            // closing file
+            fclose($handle);
+            }
+            // returning the $list array
+            return $list;
+        }
+
+        //saving list array to file
+        function save_file($filename = 'newlist.txt', $todo_list) {
+            //taking $todo_list array and saving to $filename
+            //$filecontents is what will be written to file
+            if (is_writable($filename)){
+            $filecontents = implode(PHP_EOL, $todo_list);
+            //opening $filename
+            $handle = fopen($filename, 'w');
+            fwrite($handle, $filecontents);
+            fclose($handle);
+            }
+        }    
+        // uploading file
+        if (count($_FILES) > 0 && $_FILES['file1']['error'] == 0){
+            if ($_FILES['file1']['type'] == 'text/plain'){
+                $upload_dir = 'vagrant/sites/todo.dev/public/uploads/';
+                $filename = basename($_FILES['file1']['name']);
+                $saved_filename = $upload_dir . $filename;
+                move_uploaded_file($filename, $saved_filename);
+            }
+        }
+        
+        
+        
+        $todo_list = read_file($filename);
+
+        // removing item from list when link is clicked
+        if (isset($_GET['remove'])) {
+            $return_index = $_GET['remove'];
+            unset($todo_list[$return_index]);
+            save_file($filename, $todo_list);
+        }
+        
+        // adding item to list if form is not empty
+        if (!empty($_POST[list_item])) {
+            array_push($todo_list, $_POST['list_item']);
+            save_file($filename, $todo_list);
+        }
+
+?>
 <!DOCTYPE html>
 <html>
     <head>
         <title>TODO List</title>
     </head>
     <body>
-
-                <!-- Change the file extension of your todo list template to .php.
-
-        Create an array from your sample todo list items in the template. 
-        Next, use PHP to display the array items within the unordered list 
-        in your template and test in your browser.
-
-        Reference the code you wrote in your command line todo list app to add 
-        the ability to load todo items from a file. The items should be loaded 
-        into an array, and then that array should be used to display the items 
-        just as in the above steps.
-
-        Using the POST method on the form in your template, create the ability 
-        to add todo items to the list. Each time an item is added, the todo list 
-        file should be saved with the new item added.
-
-        Add a link next to each todo item that says "Mark Complete" and have it send 
-        a GET request to the page that deletes the entry. Use query strings to send 
-        the proper key back to the server, and update the todo list file to reflect the deletion.
-
-
-
-         -->
-    <h2>TODO List</h2>
-
-    <?php
-    function save_file($filename, $todo_list) {
-            $filecontents = implode(PHP_EOL, $todo_list);
-            $handle = fopen($filename, 'w');
-            fwrite($handle, $filecontents);
-            fclose($handle);
-    }
-    
-?>
-<?php
-//step 5- link for each item, click to remove item
-// foreach ($items as $key => $item) {
-//     echo "<li>{$item} <a href=\"sample_post.php\">Remove Item</a></li>";
-// }
-// use query string using GET
-// if (issset($_GET['removeIndex'])){
-// $removeIndex = $_GET['removeIndex'];
-// unset($items[$removeIndex]);
-//}
-?>
-    <?php
-        $todo_list = [];
-        foreach ($todo_list as $items){
-            echo $items;
-            echo "<br>";
-        }
-    ?>
-    <?php
-        function read_file() {
-            $filename = 'newlist.txt';
-            // $handle is pointer to file
-            $handle = fopen($filename, 'r');
-            $contents = fread($handle, filesize($filename));
-            $list = explode("\n", $contents);
-            fclose($handle);
-            return $list;
-        }
-        $todo_list = read_file();
-    ?>
-    <?php
-        var_dump($todo_list);
-        if (isset($_POST["list_item"])) {
-            array_push($todo_list, $_POST["list_item"]);
-        }
-        var_dump($todo_list);
+        <h2>TODO List</h2>
         
-    ?>
-    <ul>
+        <ul>
+            <?php
+                foreach ($todo_list as $index => $items) {
+                    echo "<li>$items<a href=\"todo_list.php?remove={$index}\">Remove Item</a></li>";
+                }
+            ?>
+        </ul>   
+        <br>
+        <!-- user inputs new item -->
+        <h2> Enter new list item below:</h2>
+        <form method='POST' action="/todo_list.php">
+        	<label for="list_item"></label>
+        	<input id="list_item" name="list_item" type="text" placeholder="New List Item">
+        	<br>
+        	<input type="submit"></input>
+        </form>
+        <br>
+        <br>
+        <form method='POST' enctype='multipart/form-data' action='/todo_list.php'>
+            <label for 'file1'>Upload your todo list:</label>
+            <input type='file' id='file1' name='file1'>
+        <p>
+        <input type="submit" value="Upload">
+        </p>
+        </form>
         <?php
-            foreach ($todo_list as $items) {
-                echo "<li>$items</li>";
-            }
+            save_file('file1', $todo_list);
         ?>
-    </ul>
-    
-  
-   
-    <br>
-    
-    <h2> Enter new list item below:</h2>
-    <form method='POST'>
-    	<label for="list_item"></label>
-    	<input id="list_item" name="list_item" type="text" placeholder="New List Item">
-    	<br>
-    	<input type="submit"></input>
-    </form>
-<?php
-    save_file('newlist.txt', $todo_list);
-?>
     </body>
 </html>
