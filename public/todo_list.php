@@ -47,8 +47,8 @@
         $todo_list = read_file($filename);
 
         // removing item from list when link is clicked
-        if (isset($_GET['remove'])) {
-            $return_index = $_GET['remove'];
+        if (isset($_GET['list_item'])) {
+            $return_index = $_GET['list_item'];
             unset($todo_list[$return_index]);
             save_file($filename, $todo_list);
         }
@@ -70,7 +70,7 @@
         
         <ul>
             <? foreach ($todo_list as $index => $items): ?>
-                    <li><?=$items?><a href="todo_list.php?remove=$index"<?=$index?>>Remove Item</a> </li>
+                    <li><?= htmlspecialchars(strip_tags($items)) ?><a href="todo_list.php?remove=$index"<?=$index?>>Remove Item</a> </li>
                 <? endforeach; ?>
         
         </ul>   
