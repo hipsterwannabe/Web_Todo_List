@@ -1,6 +1,5 @@
-<?php
+<?=
 
-        $todo_list = [];
         $filename = 'newlist.txt';
         
         //reading file to initialize list, as well as reading uploaded files
@@ -55,7 +54,7 @@
         }
         
         // adding item to list if form is not empty
-        if (!empty($_POST[list_item])) {
+        if (!empty($_POST['list_item'])) {
             array_push($todo_list, $_POST['list_item']);
             save_file($filename, $todo_list);
         }
@@ -70,11 +69,10 @@
         <h2>TODO List</h2>
         
         <ul>
-            <?php
-                foreach ($todo_list as $index => $items) {
-                    echo "<li>$items<a href=\"todo_list.php?remove={$index}\">Remove Item</a></li>";
-                }
-            ?>
+            <? foreach ($todo_list as $index => $items): ?>
+                    <li><?=$items?><a href="todo_list.php?remove=$index"<?=$index?>>Remove Item</a> </li>
+                <? endforeach; ?>
+        
         </ul>   
         <br>
         <!-- user inputs new item -->
@@ -94,7 +92,7 @@
         <input type="submit" value="Upload">
         </p>
         </form>
-        <?php
+        <?=
             save_file('file1', $todo_list);
         ?>
     </body>
