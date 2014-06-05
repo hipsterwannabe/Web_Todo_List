@@ -1,0 +1,17 @@
+h2 {
+	color: #29ae16;
+	text-decoration: underline;
+}
+
+body {
+	background-color: #610042;
+	font-family: helvetica;
+	color: #29ae16;
+}
+
+ul {
+	list-style-image: url("Any.DO-To-do-Task-List-Icon.jpg");
+}
+a {
+
+}

@@ -64,6 +64,7 @@
 <html>
     <head>
         <title>TODO List</title>
+        <link rel = "stylesheet" href = "uploads/todo_css.css">
     </head>
     <body>
         <h2>TODO List</h2>
