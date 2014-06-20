@@ -1,64 +1,51 @@
 <?=
 
-        $filename = 'newlist.txt';
+        $filename = "newlist.txt";
+        require_once('classes/filestore.php');
         
-        //reading file to initialize list, as well as reading uploaded files
-        function read_file($givenFile) {
-            if (is_readable($givenFile) && filesize($givenFile) > 0){
-            $filename = $givenFile;
-            // $handle is pointer to file
-            $handle = fopen($givenFile, 'r');
-            // $contents is the actual list, contained in $givenFile, as a string
-            $contents = fread($handle, filesize($givenFile));
-            $contents = trim($contents);
-            // exploding $contents into array $list
-            $list = explode("\n", $contents);
-            // closing file
-            fclose($handle);
-            }
-            // returning the $list array
-            return $list;
-        }
+        $todo = new Filestore($filename);
 
-        //saving list array to file
-        function save_file($filename = 'newlist.txt', $todo_list) {
-            //taking $todo_list array and saving to $filename
-            //$filecontents is what will be written to file
-            if (is_writable($filename)){
-            $filecontents = implode(PHP_EOL, $todo_list);
-            //opening $filename
-            $handle = fopen($filename, 'w');
-            fwrite($handle, $filecontents);
-            fclose($handle);
-            }
-        }    
+        $list = $todo->read();
+
         // uploading file
         if (count($_FILES) > 0 && $_FILES['file1']['error'] == 0){
             if ($_FILES['file1']['type'] == 'text/plain'){
-                $upload_dir = 'vagrant/sites/todo.dev/public/uploads/';
+                $upload_dir = 'uploads/';
                 $filename = basename($_FILES['file1']['name']);
                 $saved_filename = $upload_dir . $filename;
-                move_uploaded_file($filename, $saved_filename);
+                move_uploaded_file($_FILES['file1']['tmp_name'], $saved_filename);
+                $uploaded_list = read_file($saved_filename);
+                array_merge($todo, $uploaded_list);
+                save_file($filename, $todo);
             }
         }
         
+        $list = $todo->read();
         
         
-        $todo_list = read_file($filename);
+        
 
         // removing item from list when link is clicked
-        if (isset($_GET['list_item'])) {
-            $return_index = $_GET['list_item'];
-            unset($todo_list[$return_index]);
-            save_file($filename, $todo_list);
+        if (isset($_GET['remove'])) {
+            unset($list[$_GET['remove']]);
+            $todo->write($list);
         }
         
-        // adding item to list if form is not empty
-        if (!empty($_POST['list_item'])) {
-            array_push($todo_list, $_POST['list_item']);
-            save_file($filename, $todo_list);
-        }
+      
 
+        // adding item to list if form is not empty
+        if (isset($_POST['list_item'])) {
+                // error if input item is longer than 240 characters
+                if (strlen($_POST['list_item']) > 240) {
+                    throw new Exception("Please keep your TODO item to less than 240 characters.");
+                }
+                if (strlen($_POST['list_item']) == 0) {
+                throw new Exception("Please enter a non-blank TODO item");
+                }
+            array_push($list, $_POST['list_item']);
+            $todo->write($list);
+            } 
+      
 ?>
 <!DOCTYPE html>
 <html>
@@ -68,10 +55,9 @@
     </head>
     <body>
         <h2>TODO List</h2>
-        
         <ul>
-            <? foreach ($todo_list as $index => $items): ?>
-                    <li><?= htmlspecialchars(strip_tags($items)) ?><a href="todo_list.php?remove=$index"<?=$index?>>Remove Item</a> </li>
+            <? foreach ($list as $index => $items): ?>
+                    <li><?= htmlspecialchars(strip_tags($items)) ." ". "<a href=\"?remove=$index\">Remove Item</a>"?></li>
                 <? endforeach; ?>
         
         </ul>   
@@ -94,7 +80,7 @@
         </p>
         </form>
         <?=
-            save_file('file1', $todo_list);
+            $list = $todo->write($list);
         ?>
     </body>
 </html>
