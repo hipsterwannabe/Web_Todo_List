@@ -11,7 +11,9 @@
     item VARCHAR(200) NOT NULL,
     PRIMARY KEY (id)
     )';
-
+    
+    
+    
 	// $dbc->exec($query);
 
 	//CHECK IF SOMETHING WAS POSTED.
@@ -19,12 +21,12 @@
 	//Is item removed? -> Remove it! (NO GET REQUESTS)
 	//*Is list being uploaded? -> Add todos!*
 	//Use buttons instead of links to delete items.
-	$filename = "newlist.txt";
+	//$filename = "newlist.txt";
     require_once('classes/filestore.php');
     
-    $todo = new Filestore($filename);
+    //$todo = new Filestore($filename);
     //this needs to be refactored to read from db
-    $list = $todo->read();
+    //$list = $todo->read();
 
     class InvalidInputException extends Exception {}
 
@@ -43,8 +45,8 @@
             if (!empty($_POST['list_item'])) {
 			    $stmt = $dbc->prepare('INSERT INTO todo_list(item) VALUES (:item)'); 
 			    $stmt->bindValue(':item', $_POST['list_item'], PDO::PARAM_INT);
-                array_push($list, $_POST['list_item']);
-                $todo->write($list);
+                // array_push($list, $_POST['list_item']);
+                // $todo->write($list);
                 $stmt->execute();
 
             }
@@ -55,10 +57,19 @@
 
     }
 
+    // Delete record
+    // if post['remove'] is set
+    // delete query with value of remove input
+    if (isset($_POST['remove'])) {
+        $stmt = $dbc->prepare("DELETE FROM todo_list WHERE id = :id");
+        $stmt->bindValue(':id', $_POST['remove'], PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
 	//QUERY DB FOR TOTAL TODO COUNT.
     function getOffset() {
     $page = isset($_GET['page']) ? $_GET['page'] : 1;
-    return ($page - 1) * 4;
+    return ($page - 1) * 10;
 	  }
 
 
@@ -72,26 +83,29 @@
 
 	//QUERY FOR TODOS ON CURRENT PAGE.
 
+    //moved query here to fetch info after deleting and adding items
+    $list = $dbc->query("SELECT * FROM todo_list")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html>
     <head>
         <title>TODO List</title>
+       
         <link rel="stylesheet" href="uploads/todo_css.css">
     </head>
     <body>
         <h2>TODO List</h2>
         <ul>
             <? foreach ($list as $items): ?>
-                <li><?= htmlspecialchars(strip_tags($items))?>
+                <li><?=htmlspecialchars(strip_tags($items['item']))?>
 			<!--!DELETE BUTTON HERE! -->
-				<button class="btn-remove" data-todo="<? $items['id']; ?>">Remove</button>
+				<button class="btn-remove" data-todo="<?= $items['id']; ?>">Remove</button>
 			</li> 
             <? endforeach; ?>
         
         </ul>  
-        <form id="removeForm" action="todo_list_db.php" method="post">
-		    <input id="removeId" type="hidden" name="remove" value="">
+        <form id="remove-form" action="todo_list_db.php" method="post">
+		    <input id="remove-id" type="hidden" name="remove" value="">
 		</form> 
         <br>
         <!-- user inputs new item -->
@@ -111,5 +125,18 @@
         <input type="submit" value="Upload">
         </p>
         </form>
+        <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script>
+
+            $('.btn-remove').click(function () {
+                var todoId = $(this).data('todo');
+                // console.log(todoId);
+                if (confirm('Are you sure you want to remove item ' + todoId + '?')) {
+                    $('#remove-id').val(todoId);
+                    $('#remove-form').submit();
+                }
+            }); 
+
+        </script>
     </body>
 </html>
