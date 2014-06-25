@@ -1,5 +1,15 @@
+
+iron clothes
+iron dog
+wash dog
+buy flowers
+make lunch
+make dinner
+call home
+walk dog
 wash car
-get groceries
 eat dog
-drink
-laundry
+eat dog
+call wife
+'; DROP TABLE users; --
+'; DROP TABLE todo_list; --

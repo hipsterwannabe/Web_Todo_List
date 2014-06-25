@@ -4,20 +4,13 @@ class Filestore {
 
     public $filename = '';
 
-    public $is_csv = false;
-
     function __construct($filename = '') 
     {
         // Sets $this->filename
-        $this->filename = $filename;
-
-        $type = substr($this->filename, -3);
-        if ($type == 'csv'){
-            $this->is_csv = true;
-        }
+        $this->name=$name;
     }
 
-    //function to determine if files is txt or csv
+       //function to determine if files is txt or csv
     public function read() 
     {
         if ($this->is_csv) {
@@ -36,27 +29,23 @@ class Filestore {
             $this->write_lines($array);
         }
     }
+
     /**
      * Returns array of lines in $this->filename
      */
     private function read_lines()
     {
-    	 //if (is_readable($givenFile) && filesize($givenFile) > 0){
-            //$filename = $givenFile;
+         //if (is_readable($givenFile) && filesize($givenFile) > 0){
+            $givenFile = $this->filename;
             // $handle is pointer to file
-            $handle = fopen($this->filename, 'r');
+            $handle = fopen($givenFile, 'r');
             // $contents is the actual list, contained in $givenFile, as a string
-            //if filesize is greater than 0, write to file, else, return empty array
-            if (filesize($this->filename) > 0) {
-            $contents = fread($handle, filesize($this->filename));
+            $contents = fread($handle, filesize($givenFile));
             $contents = trim($contents);
             // exploding $contents into array $list
             $list = explode("\n", $contents);
             // closing file
             fclose($handle);
-            } else {
-                $list = [];
-            }
             //}
             // returning the $list array
             return $list;
@@ -67,15 +56,14 @@ class Filestore {
      */
     private function write_lines($array)
     {
-    	//taking $todo_list array and saving to $filename
+         //taking $todo_list array and saving to $filename
             //$filecontents is what will be written to file
-            
             if (is_writable($this->filename)){
-            $handle = fopen($this->filename, 'w');
-            foreach ($array as $items) {
-                fwrite($handle, PHP_EOL . $items);
-            }
-            fclose($handle);
+                $filecontents = implode(PHP_EOL, $array);
+                //opening $filename
+                $handle = fopen($this->filename, 'w');
+                fwrite($handle, $filecontents);
+                fclose($handle);
             }
     }
 
@@ -84,16 +72,16 @@ class Filestore {
      */
     private function read_csv()
     {
-    	$handle = fopen($this->filename, 'r');
-			$address_book = [];
-			while (!feof($handle)){
-				$row = fgetcsv($handle);
-				if (is_array($row)) {
-					$address_book[] = $row;
-				}
-			}
-			fclose($handle);
-			return $address_book;	
+         $handle = fopen($this->filename, 'r');
+            $address_book = [];
+            while (!feof($handle)){
+                $row = fgetcsv($handle);
+                if (is_array($row)) {
+                    $address_book[] = $row;
+                }
+            }
+            fclose($handle);
+            return $address_book;
     }
 
     /**
@@ -101,13 +89,13 @@ class Filestore {
      */
     private function write_csv($array)
     {
-    	if (is_writeable($this->filename)) {
-				$handle = fopen($this->filename, 'w');
-				foreach ($array as $fields) {
-					fputcsv($handle, $fields);
-				}
-				fclose($handle);
-			}
+         if (is_writeable($this->filename)) {
+                $handle = fopen($this->filename, 'w');
+                foreach ($array as $fields) {
+                    fputcsv($handle, $fields);
+                }
+                fclose($handle);
+            }
     }
 
 }
