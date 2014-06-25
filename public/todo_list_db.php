@@ -70,28 +70,54 @@
     function getOffset() {
     $page = isset($_GET['page']) ? $_GET['page'] : 1;
     return ($page - 1) * 10;
-	  }
-
-
-	//define which page user is on
-	if (!empty($_GET)) {
-	    $pageID = $_GET['page'];
-	} else {
-	    $pageID = 1;
 	}
+
+
+	
 	//DETERMINE PAGINATION VALUES.
+    //define which page user is on
+    if (!empty($_GET)) {
+        $pageID = $_GET['page'];
+    } else {
+        $pageID = 1;
+    }
 
-	//QUERY FOR TODOS ON CURRENT PAGE.
+    function getItems($dbc){
+    
+        if (!empty($_GET)) {
+            $pageID = $_GET['page'];
+        } else {
+            $pageID = 1;
+        };
+        $pageID = getOffset();
+        $stmt = $dbc->prepare('SELECT * FROM todo_list LIMIT :LIMIT OFFSET :OFFSET'); 
+        $stmt->bindValue(':LIMIT', 10, PDO::PARAM_INT);
+        $stmt->bindValue(':OFFSET', $pageID, PDO::PARAM_INT);
+        $stmt->execute();
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        return $items;
+    }
+    $list = getItems($dbc);
+    
+    //QUERY FOR TODOS ON CURRENT PAGE.
+    $count = $dbc->query('SELECT count(*) FROM todo_list')->fetchColumn();
+    $offset = ($pageID * 10);
+    $numPages = ceil($count / 10);
+    $prev = $pageID - 1;
+    $next = $pageID + 1;
+	
     //moved query here to fetch info after deleting and adding items
-    $list = $dbc->query("SELECT * FROM todo_list")->fetchAll(PDO::FETCH_ASSOC);
+    // $list = $dbc->query("SELECT * FROM todo_list")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html>
     <head>
         <title>TODO List</title>
-       
+        <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="bootstrap/css/bootstrap-theme.min.css" />
         <link rel="stylesheet" href="uploads/todo_css.css">
+        <script src="bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
     </head>
     <body>
         <h2>TODO List</h2>
@@ -125,6 +151,14 @@
         <input type="submit" value="Upload">
         </p>
         </form>
+        <ul class="pager">
+            <?  if ($prev > 0) : ?>
+                    <li class="previous"><a href="?page=<?=$prev?>">&larr; Previous</a></li>
+            <? endif; ?>
+            <? if ($pageID < $numPages) : ?>
+                <li class="next"><a href="?page=<?=$next?>">Next &rarr;</a></li>
+            <? endif; ?>
+        </ul>
         <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
         <script>
 
